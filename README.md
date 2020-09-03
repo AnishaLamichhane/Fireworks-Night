@@ -1,2 +1,2 @@
 # Fireworks-Night
-This project contains my personal solution to the project 20 of hacking with swift.
+This project contains my personal solution to the challeges to project 20 of hacking with swift.
