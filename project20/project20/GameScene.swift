@@ -19,23 +19,37 @@ class GameScene: SKScene {
     var rightEdge = 1024 + 22
     var bottomedge = -22
     
-    var score = 0 {
-        didSet {
+    var score = 0{
+        didSet{
+            scoreLabel.text = "Score: \(score)"
         }
     }
-    
     override func didMove(to view: SKView) {
         let background = SKSpriteNode(imageNamed: "background")
             background.position = CGPoint(x: 512, y: 384)
             background.blendMode = .replace
             background.zPosition = -1
             addChild(background)
-        gameTimer = Timer.scheduledTimer(timeInterval: 7, target: self, selector: #selector(launchFireworks), userInfo: nil, repeats: true)
+        
+        scoreLabel = SKLabelNode(fontNamed: "ChalkDuster")
+        scoreLabel.horizontalAlignmentMode = .right
+        scoreLabel.position = CGPoint(x: 980, y: 700)
+        scoreLabel.zPosition = 1
+        scoreLabel.text = "Score: 0"
+        addChild(scoreLabel)
+        newGame()
     }
     
     
     
     @objc func launchFireworks() {
+        fireworkCreated += 1
+        print(fireworkCreated)
+        
+        if fireworkCreated >= 4{
+            gameOver()
+            return
+        }
         let movementAmount: CGFloat = 1800
         switch Int.random(in: 0...3) {
         case 0:
@@ -151,6 +165,18 @@ class GameScene: SKScene {
     func explode(firework: SKNode) {
         let emitter = SKEmitterNode(fileNamed: "explode")!
         emitter.position = firework.position
+        addChild(emitter)
+        print(emitter.particleAlpha)
+        
+        let remove = SKAction.run {
+            emitter.removeFromParent()
+        }
+        let wait = SKAction.wait(forDuration: 0.2)
+        let pr = SKAction.run {
+            print("hope code runs")
+        }
+        emitter.run(SKAction.sequence([pr,wait, remove,pr]))
+
         firework.removeFromParent()
     }
     
@@ -184,5 +210,23 @@ class GameScene: SKScene {
             score += 4000
         }
     }
-
+    
+    func newGame() {
+        score = 0
+        fireworkCreated = 0
+        fireWorks.removeAll()
+        gameTimer = Timer.scheduledTimer(timeInterval: 7, target: self, selector: #selector(launchFireworks), userInfo: nil, repeats: true)
+    }
+    
+    func gameOver() {
+        gameTimer?.invalidate()
+        let ac = UIAlertController(title: "GAME OVER!", message: nil, preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        ac.addAction(UIAlertAction(title: "RESTART", style: .default) {_ in
+            self.newGame()
+        })
+        DispatchQueue.main.async {
+            self.view?.window?.rootViewController?.present(ac, animated: true, completion: nil)
+        }
+    }
 }
